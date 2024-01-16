@@ -5,6 +5,7 @@ param subnetAddressPrefix string = '10.0.2.0/24'
 param location string = 'westeurope'
 param name_vector string = 'vector'
 param environmentName string = 'democontainerappmultipleports'
+param managedIdentityName string = 'myManagedIdentity'
 
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
@@ -63,12 +64,18 @@ resource environment 'Microsoft.App/managedEnvironments@2023-05-02-preview' = {
 }
 
 var environmentRef = resourceId('Microsoft.App/managedEnvironments', environmentName)
-
+var managedIdentityRef = resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', managedIdentityName)
 
 resource quickstart_vector 'Microsoft.App/containerApps@2023-08-01-preview' = {
   name: name_vector
   kind: 'containerapps'
   location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentityRef}': {}
+    }    
+  }  
   properties: {
     environmentId: environmentRef
     configuration: {
